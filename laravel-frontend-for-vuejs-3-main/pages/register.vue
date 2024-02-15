@@ -1,40 +1,35 @@
 <script setup lang="ts">
-import { ref } from "vue"
-import axios from "axios"
+import { ref, type Ref } from "vue";
+import type { RegisterForm } from "../types/RegisterForm";
+import axios from "axios";
+
+const { register } = useAuth();
+
 definePageMeta({
+  middleware: ["guest"],
   layout: "centered",
 });
 
-interface camposForm {
-  name: string,
-  email: string,
-  password: string,
-  password_confirmation: string
-}
-
-const form = ref({
+const form: Ref<RegisterForm> = ref<RegisterForm>({
   name: "",
   email: "",
   password: "",
-  password_confirmation: ""
-})
+  password_confirmation: "",
+});
 
-const router = useRouter();
-
-async function register(form: camposForm) {
-  let responseRegister
-  try{
-    responseRegister = await axios.post("http://localhost/api/register", form)
-    router.push("/login")
+const register2 = async (form: RegisterForm) => {
+  let responseRegister;
+  try {
+    responseRegister = await axios.post("/register", form);
+    useRouter().push("/login");
   } catch (e) {
-    console.log(`Ha ocurrido un error: ${e}`)
+    console.error(`Ha ocurrido un error: ${e}`);
   }
-}
+  console.log(responseRegister);
+};
 </script>
+
 <template>
-  <pre>
-    {{ form }}
-  </pre>
   <div class="register">
     <h1>Register</h1>
     <form @submit.prevent="() => register(form)">
@@ -45,20 +40,20 @@ async function register(form: camposForm) {
 
       <label>
         <div>Email</div>
-        <input v-model="form.email" type="email" required/>
+        <input v-model="form.email" type="email" />
       </label>
 
       <label>
         <div>Password</div>
-        <input v-model="form.password" type="password" required/>
+        <input v-model="form.password" type="password" />
       </label>
 
       <label>
         <div>Confirm Password</div>
-        <input v-model="form.password_confirmation" type="password" required/>
+        <input v-model="form.password_confirmation" type="password" />
       </label>
 
-      <button class="btn">Register</button>
+      <button type="submit" class="btn">Register</button>
     </form>
 
     <p>

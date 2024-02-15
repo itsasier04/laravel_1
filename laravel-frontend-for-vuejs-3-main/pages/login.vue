@@ -1,54 +1,39 @@
 <script setup lang="ts">
-import { ref } from "vue"
-import axios from "axios"
-definePageMeta({
-  layout: "centered",
+import { ref, type Ref } from "vue";
+import type { LoginForm } from "../types/LoginForm";
+
+const { login } = useAuth();
+
+const form: Ref<LoginForm> = ref<LoginForm>({
+  email: "",
+  password: "",
 });
 
-interface camposForm {
-  email: string,
-  password: string
-}
-
-const form = ref({
-  email: "",
-  password: ""
-})
-const router = useRouter();
-
-async function login(form: camposForm) {
-  let responseLogin
-  try{
-    responseLogin = await axios.post("http://localhost/api/login", form)
-    router.push("/me");    
-  } catch (e) {
-    console.log(`Ha ocurrido un error: ${e}`)
-  }
-}
+definePageMeta({
+  middleware: ["guest"],
+  layout: "centered",
+});
 </script>
 <template>
-  <pre>
-    {{ form }}
-  </pre>
   <div class="login">
     <h1>Login</h1>
     <form @submit.prevent="() => login(form)">
       <label>
         <div>Email</div>
-        <input v-model="form.email" type="text" required />
+        <input v-model="form.email" type="text" />
       </label>
 
       <label>
         <div>Password</div>
-        <input v-model="form.password" type="password" required/>
+        <input v-model="form.password" type="password" />
       </label>
       <button class="btn">Login</button>
     </form>
 
     <p>
-      Already have an account?
-      <NuxtLink class="underline text-lime-600" to="/login"
-        >Login now!</NuxtLink
+      Don't have an account?
+      <NuxtLink class="underline text-lime-600" to="/register"
+        >Register now!</NuxtLink
       >
     </p>
   </div>

@@ -15,3 +15,10 @@
     <button class="btn">Update Link</button>
   </form>
 </template>
+
+<script setup>
+import axios from 'axios';
+definePageMeta({
+  middleware: ["auth"]
+})
+</script>
