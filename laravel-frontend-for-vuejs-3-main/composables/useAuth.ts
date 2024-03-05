@@ -1,16 +1,27 @@
 import axios from "axios";
 import { ref } from "vue";
-import type { LoginForm, RegisterForm, User } from "~~/types/index.ts";
+import type { LoginPayload, RegisterPayload, User } from "~~/types/index.ts";
 
 const user = ref<User | null>(null);
-
+/* 
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  email_verified_at: Date | null;
+  two_factor_secret: string | null;
+  two_factor_recovery_codes: string | null;
+  created_at: Date | null;
+  updated_at: Date | null;
+}
+ */
 export const useAuth = () => {
-  async function login(payload: LoginForm) {
+  async function login(payload: LoginPayload) {
     await axios.post("/login", payload);
     useRouter().push("/me");
   }
 
-  async function register(payload: RegisterForm) {
+  async function register(payload: RegisterPayload) {
     await axios.post("/register", payload);
     useRouter().push("/login");
   }
@@ -43,13 +54,5 @@ export const useAuth = () => {
   async function initUser() {
     user.value = await getUser();
   }
-  return {
-
-        login,
-        register,
-        logout,
-        getUser,
-        initUser,
-        user
-    };
+  return { login, register, logout, getUser, initUser, user };
 };

@@ -1,29 +1,28 @@
 <script setup lang="ts">
-import axios from "axios";
-axios.get("/links");
+import axios from 'axios';
+import type { Link } from '~~/types';
+import { TailwindPagination } from 'laravel-vue-pagination';
 definePageMeta({
   middleware: ["auth"],
 });
-const links = [
-  {
-    short_link: "234jlsfsf",
-    full_link: "https://vueschool.io",
-    views: 3,
-    id: 1,
-  },
-  {
-    short_link: "adfaowerw",
-    full_link: "https://google.com",
-    views: 1,
-    id: 2,
-  },
-  {
-    short_link: "234sfdjaip",
-    full_link: "https://vuejsnation.com/",
-    views: 0,
-    id: 3,
-  },
-];
+
+const data = ref({})
+const links = ref<Array<Link>>([])
+const page= ref<number>(1)
+
+const getLinks = async () => {
+  const linksResponse = await axios.get(`/links?page=${page.value}`)
+  console.log(linksResponse.data);
+  
+  data.value = linksResponse.data
+  links.value = linksResponse.data.data
+}
+getLinks()
+
+watch(page, ()=>{
+  getLinks()
+})
+
 </script>
 <template>
   <div>
@@ -84,6 +83,8 @@ const links = [
           </tr>
         </tbody>
       </table>
+      <TailwindPagination :data="data"
+      @pagination-change-page="page=$event"/>
       <div class="mt-5 flex justify-center"></div>
     </div>
 

@@ -2,7 +2,10 @@
   <div>Logging Out...</div>
 </template>
 
-<script setup lang="ts">
-const {logout} = useAuth()
+<script setup>
+import axios from "axios";
+
+const { logout } = useAuth();
+
 logout();
 </script>

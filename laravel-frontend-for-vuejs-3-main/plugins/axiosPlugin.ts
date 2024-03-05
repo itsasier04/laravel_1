@@ -18,6 +18,6 @@ export default defineNuxtPlugin(async (nuxtApp) => {
   }),
     (error: any) => {
       console.log("error");
-      return error;
+      return Promise.reject(error);
     };
 });

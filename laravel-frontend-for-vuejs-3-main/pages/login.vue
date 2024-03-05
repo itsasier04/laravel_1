@@ -1,19 +1,18 @@
 <script setup lang="ts">
 import axios, { AxiosError } from "axios";
 import { ref, type Ref } from "vue";
-import type { LoginForm, ErrorResponse } from "../types/index";
+import type { LoginPayload, ErrorResponse } from "../types/index";
 import type { FormKitNode } from "@formkit/core";
 import { handleInvalidForm } from "~~/utils";
 
 const { login } = useAuth();
-
 
 const errors = ref({
   email: [],
   password: [],
 });
 
-async function handleLogin(payload: LoginForm, node?: FormKitNode) {
+async function handleLogin(payload: LoginPayload, node?: FormKitNode) {
   try {
     await login(payload);
   } catch (error) {

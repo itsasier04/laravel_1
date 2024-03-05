@@ -5,4 +5,12 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
   if (user.value) {
     return navigateTo("/me");
   }
+  /*   try {
+    const { data: user } = await axios.get("/user");
+    if (user) {
+      return navigateTo("me");
+    }
+  } catch (error) {
+    console.error(error);
+  } */
 });

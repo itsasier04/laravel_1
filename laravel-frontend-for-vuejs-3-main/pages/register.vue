@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, type Ref } from "vue";
-import type { RegisterForm } from "../types/RegisterForm";
+import type { RegisterPayload } from "../types/RegisterForm";
 import type { FormKitNode } from "@formkit/core";
 import axios, { AxiosError } from "axios";
 import { handleInvalidForm } from "~~/utils";
@@ -12,14 +12,14 @@ definePageMeta({
   layout: "centered",
 });
 
-const form: Ref<RegisterForm> = ref<RegisterForm>({
+const form: Ref<RegisterPayload> = ref<RegisterPayload>({
   name: "",
   email: "",
   password: "",
   password_confirmation: "",
 });
 
-async function handleRegister(payload: RegisterForm, node?: FormKitNode) {
+async function handleRegister(payload: RegisterPayload, node?: FormKitNode) {
   try {
     await register(payload);
   } catch (error) {
