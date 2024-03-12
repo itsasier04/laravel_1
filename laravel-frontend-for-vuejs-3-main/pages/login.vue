@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import axios, { AxiosError } from "axios";
 import { ref, type Ref } from "vue";
-import type { LoginPayload, ErrorResponse } from "../types/index";
+import type { LoginData, ErrorResponse } from "../types/index";
 import type { FormKitNode } from "@formkit/core";
 import { handleInvalidForm } from "~~/utils";
 
@@ -12,7 +12,7 @@ const errors = ref({
   password: [],
 });
 
-async function handleLogin(payload: LoginPayload, node?: FormKitNode) {
+async function handleLogin(payload: LoginData, node?: FormKitNode) {
   try {
     await login(payload);
   } catch (error) {

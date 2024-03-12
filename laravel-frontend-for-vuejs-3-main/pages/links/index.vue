@@ -1,27 +1,42 @@
 <script setup lang="ts">
 import axios from 'axios';
-import type { Link } from '~~/types';
+import { Link } from '~~/types';
 import { TailwindPagination } from 'laravel-vue-pagination';
-definePageMeta({
-  middleware: ["auth"],
-});
 
-const data = ref({})
-const links = ref<Array<Link>>([])
-const page= ref<number>(1)
+let links = ref<Link[]>([]);
+let page = ref(useRoute().query.page || 1);
+const queries = ref({
+  page:1,
+  sort:"",
+  "filter[full_link]":"",
+  ...useRoute().query
+});
+let resdata = {}
+let search = ref<string>("");
 
 const getLinks = async () => {
-  const linksResponse = await axios.get(`/links?page=${page.value}`)
-  console.log(linksResponse.data);
-  
-  data.value = linksResponse.data
-  links.value = linksResponse.data.data
+  try {
+    //@ts-expect-error page es un nombre i aixi està bé
+    const qs = new URLSearchParams(queries.value).toString();
+    let res = await axios.get(`/links?${qs}`);
+    links.value = res.data.data;
+    resdata = res.data;
+  } catch (error) {
+    console.error(error);
+  }
+ 
 }
-getLinks()
 
-watch(page, ()=>{
-  getLinks()
-})
+onMounted(()=> getLinks());
+
+definePageMeta({
+  middleware: ["auth"]
+});
+
+watch(queries, async() => {
+  getLinks();
+  useRouter().push({query:queries.value});
+}, {deep:true});
 
 </script>
 <template>
@@ -29,7 +44,7 @@ watch(page, ()=>{
     <nav class="flex justify-between mb-4 items-center">
       <h1 class="mb-0">My Links</h1>
       <div class="flex items-center">
-        <SearchInput modelValue="" />
+        <SearchInput v-model="queries['filter[full_link]']" />
         <NuxtLink to="/links/create" class="ml-4">
           <IconPlusCircle class="inline" /> Create New
         </NuxtLink>
@@ -40,23 +55,23 @@ watch(page, ()=>{
       <table class="table-fixed w-full">
         <thead>
           <tr>
-            <th class="w-[35%]">Full Link</th>
-            <th class="w-[35%]">Short Link</th>
-            <th class="w-[10%]">Views</th>
+            <TableTh v-model="queries.sort" name="full_link" class="w-[29%]">Full Link</TableTh>
+            <TableTh v-model="queries.sort" name="short_link" class="w-[29%]">Short Link</TableTh>
+            <TableTh v-model="queries.sort" name="views" class="w-[16%]">Views</TableTh>
             <th class="w-[10%]">Edit</th>
             <th class="w-[10%]">Trash</th>
             <th class="w-[6%] text-center">
-              <button><IconRefresh /></button>
+              <button @click="getLinks"><IconRefresh class="w-[15px] relative top-[2px]"/></button>
             </th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="link in links">
+          <tr v-for="link in links" :key="link.id">
             <td>
               <a :href="link.full_link" target="_blank">
                 {{ link.full_link.replace(/^http(s?):\/\//, "") }}</a
               >
-            </td>
+            </td> 
             <td>
               <a
                 :href="`${useRuntimeConfig().public.appURL}/${link.short_link}`"
@@ -83,8 +98,7 @@ watch(page, ()=>{
           </tr>
         </tbody>
       </table>
-      <TailwindPagination :data="data"
-      @pagination-change-page="page=$event"/>
+      <TailwindPagination :data="resdata" @pagination-change-page="queries.page=$event"></TailwindPagination>
       <div class="mt-5 flex justify-center"></div>
     </div>
 
