@@ -1,27 +1,39 @@
 <script setup lang="ts">
 import axios from 'axios';
-import type { Link } from '~~/types';
+import { Link } from '~~/types';
 import { TailwindPagination } from 'laravel-vue-pagination';
+import { useLinks } from '~~/composables/useLinks';
+import { link } from '@formkit/icons';
+
+let page = ref(useRoute().query.page || 1);
+const queries = ref({
+  page:1,
+  sort:"",
+  "filter[full_link]":"",
+  ...useRoute().query
+});
+const {data, index:getLinks, destroy} = useLinks({queries});
+
+
+let resdata = {}
+let search = ref<string>("");
+
+onMounted(()=> getLinks());
+
+async function handleDelete(id:number) {
+    await destroy(id);
+    if(data.value) {
+      data.value.data = data.value?.data.filter(link => link.id != id);
+    }
+}
+
 definePageMeta({
-  middleware: ["auth"],
+  middleware: ["auth"]
 });
 
-const data = ref({})
-const links = ref<Array<Link>>([])
-const page= ref<number>(1)
-
-const getLinks = async () => {
-  const linksResponse = await axios.get(`/links?page=${page.value}`)
-  console.log(linksResponse.data);
-  
-  data.value = linksResponse.data
-  links.value = linksResponse.data.data
-}
-getLinks()
-
-watch(page, ()=>{
-  getLinks()
-})
+watch(queries, async() => {
+  useRouter().push({query:queries.value});
+}, {deep:true});
 
 </script>
 <template>
@@ -29,7 +41,7 @@ watch(page, ()=>{
     <nav class="flex justify-between mb-4 items-center">
       <h1 class="mb-0">My Links</h1>
       <div class="flex items-center">
-        <SearchInput modelValue="" />
+        <SearchInput v-model="queries['filter[full_link]']" />
         <NuxtLink to="/links/create" class="ml-4">
           <IconPlusCircle class="inline" /> Create New
         </NuxtLink>
@@ -40,23 +52,23 @@ watch(page, ()=>{
       <table class="table-fixed w-full">
         <thead>
           <tr>
-            <th class="w-[35%]">Full Link</th>
-            <th class="w-[35%]">Short Link</th>
-            <th class="w-[10%]">Views</th>
+            <TableTh v-model="queries.sort" name="full_link" class="w-[29%]">Full Link</TableTh>
+            <TableTh v-model="queries.sort" name="short_link" class="w-[29%]">Short Link</TableTh>
+            <TableTh v-model="queries.sort" name="views" class="w-[16%]">Views</TableTh>
             <th class="w-[10%]">Edit</th>
             <th class="w-[10%]">Trash</th>
             <th class="w-[6%] text-center">
-              <button><IconRefresh /></button>
+              <button @click="getLinks()"><IconRefresh class="w-[15px] relative top-[2px]"/></button>
             </th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="link in links">
-            <td>
+          <tr v-for="link in data?.data" :key="link.id">
+            <td :title="`created ${useTimeAgo(link.created_at).value}`">
               <a :href="link.full_link" target="_blank">
                 {{ link.full_link.replace(/^http(s?):\/\//, "") }}</a
               >
-            </td>
+            </td> 
             <td>
               <a
                 :href="`${useRuntimeConfig().public.appURL}/${link.short_link}`"
@@ -77,18 +89,16 @@ watch(page, ()=>{
               /></NuxtLink>
             </td>
             <td>
-              <button><IconTrash /></button>
+              <button @click="handleDelete(link.id as number)"><IconTrash /></button>
             </td>
             <td></td>
           </tr>
         </tbody>
       </table>
-      <TailwindPagination :data="data"
-      @pagination-change-page="page=$event"/>
+      <TailwindPagination :data="{...data}" @pagination-change-page="queries.page=$event"></TailwindPagination>
       <div class="mt-5 flex justify-center"></div>
     </div>
 
-    <!-- No links message for when table is empty -->
     <div
       v-else
       class="border-dashed border-gray-500 p-3 border-[1px] text-center"
@@ -97,10 +107,8 @@ watch(page, ()=>{
         <IconLink />
       </div>
       <p>
-        <!-- Show this if reason for no links is none found in search -->
         <span v-if="false"> No links matching links found. </span>
 
-        <!-- Show this if reason for no links is User has none -->
         <span v-else>
           No links created yet
           <NuxtLink to="/links/create" class="text-green-600"
